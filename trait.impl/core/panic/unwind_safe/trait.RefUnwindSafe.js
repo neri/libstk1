@@ -1,0 +1,9 @@
+(function() {
+    var implementors = Object.fromEntries([["libstk1",[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html\" title=\"trait core::panic::unwind_safe::RefUnwindSafe\">RefUnwindSafe</a> for <a class=\"enum\" href=\"libstk1/enum.DecodeError.html\" title=\"enum libstk1::DecodeError\">DecodeError</a>",1,["libstk1::DecodeError"]],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html\" title=\"trait core::panic::unwind_safe::RefUnwindSafe\">RefUnwindSafe</a> for <a class=\"enum\" href=\"libstk1/enum.EncodeError.html\" title=\"enum libstk1::EncodeError\">EncodeError</a>",1,["libstk1::EncodeError"]],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html\" title=\"trait core::panic::unwind_safe::RefUnwindSafe\">RefUnwindSafe</a> for <a class=\"struct\" href=\"libstk1/struct.Configuration.html\" title=\"struct libstk1::Configuration\">Configuration</a>",1,["libstk1::stk1::Configuration"]],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html\" title=\"trait core::panic::unwind_safe::RefUnwindSafe\">RefUnwindSafe</a> for <a class=\"struct\" href=\"libstk1/struct.S7s.html\" title=\"struct libstk1::S7s\">S7s</a>",1,["libstk1::s7s::S7s"]],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/panic/unwind_safe/trait.RefUnwindSafe.html\" title=\"trait core::panic::unwind_safe::RefUnwindSafe\">RefUnwindSafe</a> for <a class=\"struct\" href=\"libstk1/struct.Stk1.html\" title=\"struct libstk1::Stk1\">Stk1</a>",1,["libstk1::stk1::Stk1"]]]]]);
+    if (window.register_implementors) {
+        window.register_implementors(implementors);
+    } else {
+        window.pending_implementors = implementors;
+    }
+})()
+//{"start":57,"fragment_lengths":[1661]}
