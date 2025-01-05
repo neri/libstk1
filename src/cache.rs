@@ -1,7 +1,6 @@
 //! cache offsets of matching patterns
 
-use alloc::boxed::Box;
-use alloc::collections::BTreeMap;
+use alloc::{boxed::Box, collections::BTreeMap};
 use core::mem::ManuallyDrop;
 
 pub type OffsetCache<'a> = MatchingCache<'a, MatchingBytesKey>;
@@ -10,7 +9,7 @@ pub struct MatchingCache<'a, KEY>
 where
     KEY: MatchingKey,
 {
-    input: &'a [KEY::ItemType],
+    input: &'a [KEY::ElementType],
     key: KEY,
     cache: BTreeMap<KEY::KeyType, OffsetList>,
     cursor: usize,
@@ -20,7 +19,7 @@ where
 
 impl<'a, KEY: MatchingKey> MatchingCache<'a, KEY> {
     #[inline]
-    pub fn new(input: &'a [KEY::ItemType], max_distance: usize) -> Self {
+    pub fn new(input: &'a [KEY::ElementType], max_distance: usize) -> Self {
         if input.len() < 4 {
             Self {
                 input,
@@ -91,26 +90,27 @@ impl<KEY: MatchingKey> MatchingCache<'_, KEY> {
 
 pub trait MatchingKey
 where
-    Self::ItemType: Copy,
+    Self::ElementType: Copy,
     Self::KeyType: Copy + Ord,
 {
-    type ItemType;
+    type ElementType;
     type KeyType;
 
     fn null() -> Self;
 
-    fn new(val0: Self::ItemType, val1: Self::ItemType, val2: Self::ItemType) -> Self;
+    fn new(val0: Self::ElementType, val1: Self::ElementType, val2: Self::ElementType) -> Self;
 
     fn key_value(&self) -> Self::KeyType;
 
-    fn advance(&mut self, new_value: Self::ItemType);
+    fn advance(&mut self, new_value: Self::ElementType);
 }
 
+#[repr(transparent)]
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 pub struct MatchingBytesKey(u32);
 
 impl MatchingKey for MatchingBytesKey {
-    type ItemType = u8;
+    type ElementType = u8;
     type KeyType = u32;
 
     #[inline]
@@ -119,7 +119,7 @@ impl MatchingKey for MatchingBytesKey {
     }
 
     #[inline]
-    fn new(val0: Self::ItemType, val1: Self::ItemType, val2: Self::ItemType) -> Self {
+    fn new(val0: Self::ElementType, val1: Self::ElementType, val2: Self::ElementType) -> Self {
         Self(((val0 as u32) << 16) | ((val1 as u32) << 8) | (val2 as u32))
     }
 
@@ -129,13 +129,13 @@ impl MatchingKey for MatchingBytesKey {
     }
 
     #[inline]
-    fn advance(&mut self, new_value: Self::ItemType) {
+    fn advance(&mut self, new_value: Self::ElementType) {
         self.0 = ((self.0 << 8) | (new_value as u32)) & 0xFF_FF_FF;
     }
 }
 
 pub struct OffsetList {
-    root: ManuallyDrop<Box<Node<u32>>>,
+    root: ManuallyDrop<Box<SimpleList<u32>>>,
 }
 
 #[allow(dead_code)]
@@ -143,19 +143,19 @@ impl OffsetList {
     #[inline]
     pub fn new(value: u32) -> Self {
         Self {
-            root: ManuallyDrop::new(Node::new_leaf(value)),
+            root: ManuallyDrop::new(SimpleList::new_leaf(value)),
         }
     }
 
     pub fn push(&mut self, value: u32) {
         unsafe {
             let next = ManuallyDrop::take(&mut self.root);
-            self.root = ManuallyDrop::new(Node::new(value, next));
+            self.root = ManuallyDrop::new(SimpleList::new(value, next));
         }
     }
 
     #[inline]
-    pub fn root<'a>(&'a self) -> &'a Box<Node<u32>> {
+    pub fn root<'a>(&'a self) -> &'a Box<SimpleList<u32>> {
         &self.root
     }
 
@@ -169,7 +169,7 @@ impl OffsetList {
         if self.nearest() < min_value {
             return false;
         }
-        let mut node = (&mut self.root) as &mut Box<Node<u32>>;
+        let mut node = (&mut self.root) as &mut Box<SimpleList<u32>>;
         loop {
             if let Some(next) = node.next() {
                 if next.value() < min_value {
@@ -209,13 +209,13 @@ impl Drop for OffsetList {
     }
 }
 
-pub struct Node<T> {
+pub struct SimpleList<T> {
     next: Option<Box<Self>>,
     value: T,
 }
 
 #[allow(dead_code)]
-impl<T> Node<T> {
+impl<T> SimpleList<T> {
     #[inline]
     pub fn new(value: T, next: Box<Self>) -> Box<Self> {
         Box::new(Self {
@@ -236,7 +236,8 @@ impl<T> Node<T> {
 
     #[inline]
     pub fn unlink(&mut self) {
-        self.next.take();
+        let next = self.next.take();
+        drop(next);
     }
 
     #[inline]
@@ -263,7 +264,7 @@ impl<T> Node<T> {
     }
 }
 
-impl<T> Drop for Node<T> {
+impl<T> Drop for SimpleList<T> {
     fn drop(&mut self) {
         let mut next = self.next.take();
         loop {
@@ -276,7 +277,7 @@ impl<T> Drop for Node<T> {
 }
 
 struct DistanceIter<'a> {
-    node: Option<&'a Box<Node<u32>>>,
+    node: Option<&'a Box<SimpleList<u32>>>,
     current: usize,
     min_value: usize,
 }

@@ -20,7 +20,7 @@
 //!
 //! Related Documents: <http://osask.net/w/196.html> (But different from known final specifications)
 
-// #![cfg_attr(not(test), no_std)]
+#![cfg_attr(not(test), no_std)]
 
 extern crate alloc;
 

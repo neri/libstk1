@@ -6,7 +6,7 @@ use crate::{
     var_slice::VarSlice,
     DecodeError, EncodeError, S7s,
 };
-use alloc::vec::Vec;
+use alloc::{format, string::String, vec::Vec};
 
 const LZ_MAX_LEN: usize = 0x80_00_00;
 const LZ_MAX_DISTANCE: usize = 0x02_00_00;
